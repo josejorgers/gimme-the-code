@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-
+from gtcode.extract import get_python_code
 
 def search(query: str) -> list:
     '''
@@ -20,7 +20,7 @@ def search(query: str) -> list:
     page = get_search_result_page(url)
 
     return get_list_of_links(page)
-    
+
 
 def get_search_result_page(url: str):
     '''
@@ -49,3 +49,23 @@ def get_list_of_links(page) -> list:
 
     # Not all results have an anchor and 'href' starts with '/url?q='
     return list([r.find('a')['href'][7:] for r in results_html if r.find('a')])
+
+
+def get_code_from_results(result_links):
+    '''
+    Get the code fragments from the results
+
+    Parameters:
+        result_links: list of links
+    Returns:
+        list of code fragments
+    '''
+
+    return list(map(get_code_from_result, result_links))
+
+def get_code_from_result(link: str) -> str:
+
+    content = requests.get(link).content
+    content = BeautifulSoup(content, 'html.parser').prettify()
+
+    return get_python_code(content)
